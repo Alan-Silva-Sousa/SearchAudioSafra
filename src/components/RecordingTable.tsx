@@ -4,6 +4,7 @@ import {
 } from '@mui/material'
 import RecordingRow from './RecordingRow'
 import type { RecordingMeta } from '../hooks/useRecordings'
+import { downloadSelectedRecordings } from '../hooks/downloadGravacao'
 
 const rowsPerPage = 35;
 
@@ -45,6 +46,15 @@ export default function RecordingTable({
     else setSelectedIds(selectedIds.filter(x => x !== CallIDMaster))
   }
 
+  async function handleDownloadSelected() {
+    setLoading(true);
+    try {
+      await downloadSelectedRecordings(selectedIds);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (!recordings.length) return null
 
   return (
@@ -55,7 +65,8 @@ export default function RecordingTable({
           variant="contained"
           color="primary"
           size="small"
-          disabled={selectedIds.length === 0}
+          disabled={selectedIds.length === 0 || loading}
+          onClick={handleDownloadSelected}
           sx={{
             fontWeight: 700,
             backgroundColor: selectedIds.length === 0 ? 'divider' : 'primary.main',

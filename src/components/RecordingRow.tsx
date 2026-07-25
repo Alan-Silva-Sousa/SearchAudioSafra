@@ -2,6 +2,9 @@ import { Collapse, IconButton, TableCell, TableRow, Box, Typography, Stack, Tool
 import { KeyboardArrowDown, KeyboardArrowUp, Download } from '@mui/icons-material'
 import { useState } from 'react'
 import type { RecordingMeta } from '../hooks/useRecordings'
+import { downloadSingleRecording } from '../hooks/downloadGravacao';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 interface Props {
   recording: RecordingMeta
@@ -83,13 +86,13 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
               gap: 2,
               alignItems: 'flex-start'
             }}>
-              {/* Player de áudio */}
+              {/* Player de áudio - alterando para simular download via endereço, como sera na S3 da aws*/} 
               <audio
                 controls
                 style={{ borderRadius: 12, maxWidth: '100%', width: '100%' }}
               >
                 <source
-                  src="https://www.w3schools.com/html/horse.mp3"
+                  src={`${API_BASE_URL}/audio/play/${recording.CallIDMaster}`}
                   type="audio/mpeg"
                 />
                 Seu navegador não suporta o elemento de áudio.
