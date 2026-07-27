@@ -30,7 +30,6 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
 
   function formatContentType(ct: string | null): string {
     if (!ct) return '-';
-    // "audio/mpeg" → "MPEG", "audio/wav" → "WAV", "audio/opus" → "OPUS"
     const parts = ct.split('/');
     return (parts[1] || ct).toUpperCase();
   }
@@ -86,7 +85,7 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
               gap: 2,
               alignItems: 'flex-start'
             }}>
-              {/* Player de áudio - alterando para simular download via endereço, como sera na S3 da aws*/} 
+              {/* Player de áudio - busca direto do backend, sem autenticação por enquanto */}
               <audio
                 controls
                 style={{ borderRadius: 12, maxWidth: '100%', width: '100%' }}
@@ -98,9 +97,7 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
                 Seu navegador não suporta o elemento de áudio.
               </audio>
 
-              {/* Grid com informações da chamada */}
               <Grid container spacing={2} sx={{ width: '100%', mt: 1 }}>
-                {/* Informações de telefone */}
                 <Grid item xs={12} sm={6} md={4}>
                   <Typography variant="body2" color="text.secondary">
                     <strong>ANI:</strong> {recording.ANI || '-'}
@@ -117,14 +114,12 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
                   </Typography>
                 </Grid>
 
-                {/* Informações do agente */}
                 <Grid item xs={12} sm={6} md={4}>
                   <Typography variant="body2" color="text.secondary">
                     <strong>Login do Agente:</strong> {recording.AgentLogin || '-'}
                   </Typography>
                 </Grid>
-                
-                {/* Informações de cliente */}
+
                 <Grid item xs={12} sm={6} md={4}>
                   <Typography variant="body2" color="text.secondary">
                     <strong>CPF:</strong> {recording.CPF || '-'}
@@ -136,7 +131,6 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
                   </Typography>
                 </Grid>
 
-                {/* Informações bancárias */}
                 <Grid item xs={12} sm={6} md={4}>
                   <Typography variant="body2" color="text.secondary">
                     <strong>Agência:</strong> {recording.AGENCIA || '-'}
@@ -153,7 +147,6 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
                   </Typography>
                 </Grid>
 
-                {/* Informações de contrato */}
                 <Grid item xs={12} sm={6} md={4}>
                   <Typography variant="body2" color="text.secondary">
                     <strong>Contrato:</strong> {recording.CONTRATO || '-'}
@@ -166,27 +159,24 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
                 </Grid>
               </Grid>
 
-              {/* Formato do áudio */}
               <Typography variant="body2" color="text.secondary">
                 <strong>Formato:</strong> {recording.ContentType || 'WAV'}
               </Typography>
 
-              {/* Duração do áudio */}
               <Typography variant="body2" color="text.secondary">
                 <strong>Duração:</strong> {formatDuration(recording.RecordDuration)}
               </Typography>
 
-              {/* Tamanho do arquivo */}
               <Typography variant="body2" color="text.secondary">
                 <strong>Tamanho:</strong> {formatFileSize(recording.DestinationFileSize)}
               </Typography>
 
-              {/* Botões de download/exportação */}
               <Stack direction="row" spacing={1}>
                 <Tooltip title="Download do áudio">
                   <Button
                     color="primary"
                     startIcon={<Download />}
+                    onClick={() => downloadSingleRecording(recording)}
                   >
                   </Button>
                 </Tooltip>

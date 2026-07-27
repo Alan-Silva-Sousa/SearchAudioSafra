@@ -38,18 +38,12 @@ export interface UserMeta {
   lastLogin: string
 }
 
-// Base da API do backend (NestJS). Ajuste via variável de ambiente do Vite se precisar.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
-// De-para entre o campo escolhido no FilterBar do front e o filterType
-// que o backend (AudioService.findAll) reconhece hoje.
-// Campos sem correspondência no backend (cpf, cnpj, agencia, conta, ec,
-// contrato, protocolo, format) não são enviados — o backend não tem
-// coluna nem filtro pra eles ainda.
 const FILTER_FIELD_TO_TYPE: Record<string, string> = {
   date: 'RecordStart',
   ani: 'ANI',
-  dnis: 'ANI', // backend busca ANI e DNIS juntos no mesmo filtro
+  dnis: 'ANI',
   user: 'Agent',
   agentLogin: 'Agent',
   category: 'Campaign',
@@ -67,7 +61,7 @@ export default function useRecordings() {
       if (!filter.field) return;
 
       const filterType = FILTER_FIELD_TO_TYPE[filter.field];
-      if (!filterType) return; // campo sem suporte no backend ainda
+      if (!filterType) return;
 
       if (!filter.value) return;
 

@@ -121,7 +121,8 @@ export default function RecordingListPage() {
             SearchAudio4me
           </Typography>
 
-          <Container sx={{ display: "flex", justifyContent: "flex-end" }}>
+          {/* MENU HAMBURGER - REMOVIDO */}
+          {/* <Container sx={{ display: "flex", justifyContent: "flex-end" }}>
             <IconButton
               aria-controls={open ? "menu-actions" : undefined}
               aria-haspopup="true"
@@ -139,35 +140,9 @@ export default function RecordingListPage() {
               onClose={handleClose}
               MenuListProps={{ sx: { color: 'text.primary' } }}
             >
-              <MenuItem onClick={() => { handleClose(); goHome(); }}>
-                Home
-              </MenuItem>
-              <MenuItem onClick={() => { handleClose(); goUpdatePassword(); }}>
-                Alterar Senha
-              </MenuItem>
 
-              {allowedUsers.includes(email) && (
-                <>
-                  <MenuItem onClick={() => { handleClose(); goAdminPassword(); }}>
-                    Admin
-                  </MenuItem>
-                  <MenuItem onClick={() => { handleClose(); goRegister(); }}>
-                    Registro
-                  </MenuItem>
-                  <MenuItem onClick={() => { handleClose(); goUsersList(); }}>
-                    Usuários
-                  </MenuItem>
-                  <MenuItem onClick={() => { handleClose(); goLogs(); }}>
-                    Logs
-                  </MenuItem>
-                </>
-              )}
-
-              <MenuItem onClick={() => { handleClose(); logout(); }}>
-                Logout
-              </MenuItem>
             </Menu>
-          </Container>
+          </Container> */}
 
         </Container>
         {/* <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, mb: 1 }}>
