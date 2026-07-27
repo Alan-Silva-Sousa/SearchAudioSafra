@@ -22,6 +22,7 @@ export interface RecordingMeta {
   Direction: string
   MediaType: string
   ContentType: string
+  FileExtension: string
   CPF: string
   CNPJ: string
   AGENCIA: string

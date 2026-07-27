@@ -28,10 +28,9 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
     return `${(n / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  function formatContentType(ct: string | null): string {
-    if (!ct) return '-';
-    const parts = ct.split('/');
-    return (parts[1] || ct).toUpperCase();
+  function formatFileExtension(ext: string | null): string {
+    if (!ext) return '-';
+    return ext.toUpperCase();
   }
 
   function formatDuration(seconds: number | bigint): string {
@@ -73,7 +72,7 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
         <TableCell sx={{ color: 'primary.main' }}>{recording.Campaignname || '-'}</TableCell>
         <TableCell sx={{ color: 'primary.main' }}>{formatDuration(recording.RecordDuration)}</TableCell>
         <TableCell sx={{ color: 'primary.main' }}>{formatFileSize(recording.DestinationFileSize)}</TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{formatContentType(recording.ContentType)}</TableCell>
+        <TableCell sx={{ color: 'primary.main' }}>{formatFileExtension(recording.FileExtension)}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell colSpan={11} sx={{ bgcolor: 'background.default', p: 0, border: 0, borderTop: '1px solid', borderColor: 'divider' }}>
@@ -160,7 +159,7 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
               </Grid>
 
               <Typography variant="body2" color="text.secondary">
-                <strong>Formato:</strong> {recording.ContentType || 'WAV'}
+                <strong>Formato:</strong> {formatFileExtension(recording.FileExtension)}
               </Typography>
 
               <Typography variant="body2" color="text.secondary">
