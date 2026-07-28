@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { Alert, Box, Container, Typography, CircularProgress, Paper, IconButton, Menu, MenuItem, Stack } from '@mui/material'
+import { Alert, Box, Container, Typography, CircularProgress, Paper, IconButton, Menu, MenuItem, Stack, Button } from '@mui/material'
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import FilterBar, { type FilterItem } from '../components/RecordingFilterBar'
@@ -119,7 +119,17 @@ export default function RecordingListPage() {
             color="primary.main"
           >
             SearchAudio4me
+
           </Typography>
+
+          <Button
+            type="button"
+            variant="contained"
+            color="primary"
+            sx={{ fontWeight: 700 }}
+          >
+            SearchVideo4ME
+          </Button>
 
           {/* MENU HAMBURGER - REMOVIDO */}
           {/* <Container sx={{ display: "flex", justifyContent: "flex-end" }}>
