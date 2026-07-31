@@ -94,6 +94,11 @@ export default function RecordingListPage() {
     setShowDateRangeAlert(hasDateWithOnlyStart);
   }, [])
 
+  const handleFilterSubmit = (filters: FilterItem[]) => {
+    setSelectedIds([]);
+    fetchRecordings(filters);
+  };
+  
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 5 }}>
       <Container 
@@ -128,7 +133,7 @@ export default function RecordingListPage() {
             color="primary"
             sx={{ fontWeight: 700 }}
           >
-            SearchVideo4ME
+          SearchVideo4ME
           </Button>
 
           {/* MENU HAMBURGER - REMOVIDO */}
@@ -201,7 +206,7 @@ export default function RecordingListPage() {
 
         <Box  margin="0 0 0 0" sx={{ mb: 4 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <FilterBar onSubmit={fetchRecordings} onFilterChange={handleFilterChange} />
+            <FilterBar onSubmit={handleFilterSubmit} onFilterChange={handleFilterChange} />
           </LocalizationProvider>
         </Box>
 
