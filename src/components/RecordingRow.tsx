@@ -1,15 +1,68 @@
 import { Collapse, IconButton, TableCell, TableRow, Box, Typography, Stack, Tooltip, Checkbox, Button, Grid } from '@mui/material'
 import { KeyboardArrowDown, KeyboardArrowUp, Download } from '@mui/icons-material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { RecordingMeta } from '../hooks/useRecordings'
 import { downloadSingleRecording } from '../hooks/downloadGravacao';
+import { authenticatedHeaders } from '../auth/accessContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/audio/api';
 
 interface Props {
   recording: RecordingMeta
   checked: boolean
   onCheck: (id: string, checked: boolean) => void
+}
+
+function participantDataEntries(data: Record<string, unknown> | undefined) {
+  return Object.entries(data || {})
+    .filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '')
+    .sort(([left], [right]) => left.localeCompare(right, 'pt-BR'));
+}
+
+function participantDataValue(value: unknown): string {
+  return typeof value === 'object' ? JSON.stringify(value) : String(value);
+}
+
+function participantValue(data: Record<string, unknown> | undefined, ...keys: string[]): string {
+  const entries = Object.entries(data || {});
+  for (const key of keys) {
+    const entry = entries.find(([name]) => name.trim().toLowerCase() === key.toLowerCase());
+    if (entry && entry[1] !== null && entry[1] !== undefined && String(entry[1]).trim()) {
+      return String(entry[1]).trim();
+    }
+  }
+  return '';
+}
+
+function AuthorizedAudio({ recording }: { recording: RecordingMeta }) {
+  const [source, setSource] = useState<string>();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let objectUrl: string | undefined;
+    fetch(`${API_BASE_URL}/audio/play/${recording.CallIDMaster}`, {
+      headers: authenticatedHeaders(),
+      credentials: 'include',
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Player indisponível: ${response.status}`);
+        return response.blob();
+      })
+      .then((blob) => {
+        objectUrl = URL.createObjectURL(blob);
+        setSource(objectUrl);
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') console.error(error);
+      });
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [recording.CallIDMaster]);
+
+  return <audio controls src={source} style={{ borderRadius: 8, maxWidth: '100%', width: '100%' }} />;
 }
 
 export default function RecordingRow({ recording, checked, onCheck }: Props) {
@@ -41,6 +94,14 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
+  const participantData = recording.ParticipantData;
+  const startTime = participantValue(participantData, 'Hora Inicio') || recording.RecordStart;
+  const customerPhone = participantValue(participantData, 'Telefone Cliente', 'telefone') || recording.ANI?.replace(/^tel:\+?/, '');
+  const destinationPhone = participantValue(participantData, 'Telefone Destino') || recording.DNIS?.replace(/^tel:\+?/, '');
+  const document = participantValue(participantData, 'Doc Cliente', 'doc_cliente', 'CPF', 'CNPJ');
+  const skill = participantValue(participantData, 'skill', 'transfer_filas');
+  const environment = participantValue(participantData, 'Ambiente');
+
   return (
     <>
       <TableRow hover>
@@ -57,7 +118,7 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
           </IconButton>
         </TableCell>
         <TableCell sx={{ color: 'primary.main' }}>
-          {new Date(recording.RecordStart).toLocaleString('pt-BR', {
+          {new Date(startTime).toLocaleString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -65,17 +126,16 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
             minute: '2-digit',
           })}
         </TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{recording.ANI || '-'}</TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{recording.DNIS || '-'}</TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{recording.Username || '-'}</TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{recording.AgentLogin || '-'}</TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{recording.Campaignname || '-'}</TableCell>
+        <TableCell sx={{ color: 'primary.main' }}>{customerPhone || '-'}</TableCell>
+        <TableCell sx={{ color: 'primary.main' }}>{destinationPhone || '-'}</TableCell>
+        <TableCell sx={{ color: 'primary.main' }}>{document || '-'}</TableCell>
+        <TableCell sx={{ color: 'primary.main' }}>{skill || '-'}</TableCell>
+        <TableCell sx={{ color: 'primary.main' }}>{environment || '-'}</TableCell>
         <TableCell sx={{ color: 'primary.main' }}>{formatDuration(recording.RecordDuration)}</TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{formatFileSize(recording.DestinationFileSize)}</TableCell>
         <TableCell sx={{ color: 'primary.main' }}>{formatFileExtension(recording.FileExtension)}</TableCell>
       </TableRow>
       <TableRow>
-        <TableCell colSpan={11} sx={{ bgcolor: 'background.default', p: 0, border: 0, borderTop: '1px solid', borderColor: 'divider' }}>
+        <TableCell colSpan={10} sx={{ bgcolor: 'background.default', p: 0, border: 0, borderTop: '1px solid', borderColor: 'divider' }}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{
               p: 3,
@@ -84,79 +144,29 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
               gap: 2,
               alignItems: 'flex-start'
             }}>
-              {/* Player de áudio - busca direto do backend, sem autenticação por enquanto */}
-              <audio
-                controls
-                style={{ borderRadius: 12, maxWidth: '100%', width: '100%' }}
-              >
-                <source
-                  src={`${API_BASE_URL}/audio/play/${recording.CallIDMaster}`}
-                  type="audio/mpeg"
-                />
-                Seu navegador não suporta o elemento de áudio.
-              </audio>
+              {/* O backend valida a sessão antes de entregar a mídia. */}
+              <AuthorizedAudio recording={recording} />
 
-              <Grid container spacing={2} sx={{ width: '100%', mt: 1 }}>
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>ANI:</strong> {recording.ANI || '-'}
+              {participantDataEntries(recording.ParticipantData).length > 0 && (
+                <Box sx={{ width: '100%', mt: 1 }}>
+                  <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+                    Participant Data
                   </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>DNIS:</strong> {recording.DNIS || '-'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Nome do Agente:</strong> {recording.Username || '-'}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Login do Agente:</strong> {recording.AgentLogin || '-'}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>CPF:</strong> {recording.CPF || '-'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>CNPJ:</strong> {recording.CNPJ || '-'}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Agência:</strong> {recording.AGENCIA || '-'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Conta:</strong> {recording.CONTA || '-'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>EC:</strong> {recording.EC || '-'}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Contrato:</strong> {recording.CONTRATO || '-'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Protocolo:</strong> {recording.PROTOCOLO || '-'}
-                  </Typography>
-                </Grid>
-              </Grid>
+                  <Grid container spacing={2}>
+                    {participantDataEntries(recording.ParticipantData).map(([key, value]) => (
+                      <Grid item xs={12} md={key.toUpperCase().includes('CDR') ? 12 : 6} key={key}>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}
+                        >
+                          <strong>{key}:</strong> {participantDataValue(value)}
+                        </Typography>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
 
               <Typography variant="body2" color="text.secondary">
                 <strong>Formato:</strong> {formatFileExtension(recording.FileExtension)}

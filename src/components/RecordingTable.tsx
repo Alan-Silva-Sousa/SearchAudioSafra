@@ -105,13 +105,12 @@ export default function RecordingTable({
             </TableCell>
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}></TableCell>
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Data/Hora</TableCell>
-            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>ANI</TableCell>
-            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>DNIS</TableCell>
-            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Nome Agente</TableCell>
-            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Usuário</TableCell>
-            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Categoria</TableCell>
+            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Telefone Cliente</TableCell>
+            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Telefone Destino</TableCell>
+            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Documento</TableCell>
+            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Fila/Skill</TableCell>
+            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Ambiente</TableCell>
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Duração</TableCell>
-            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Tamanho</TableCell>
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Formato</TableCell>
           </TableRow>
         </TableHead>
@@ -128,7 +127,7 @@ export default function RecordingTable({
         {recordings.length > rowsPerPage && (
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={11} sx={{ p: 1 }}>
+              <TableCell colSpan={10} sx={{ p: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
                   <Button
                     onClick={() => setPage((p) => Math.max(p - 1, 0))}

@@ -10,19 +10,13 @@ import { useEffect } from "react";
 
 const menuLabelMap = {
   date: "Data/Hora Ligação",
-  user: "Nome do Agente",
-  agentLogin: "Login do Agente",
-  category: "Categoria",
+  telefoneCliente: "Telefone Cliente",
+  telefoneDestino: "Telefone Destino",
+  documento: "Documento",
+  filaSkill: "Fila/Skill",
+  ambiente: "Ambiente",
+  duracao: "Duração",
   format: "Formato",
-  ani: "ANI",
-  dnis: "DNIS",
-  cpf: "CPF",
-  cnpj: "CNPJ",
-  agencia: "Agência",
-  conta: "Conta",
-  ec: "EC",
-  contrato: "Contrato",
-  protocolo: "Protocolo",
 };
 
 export type FilterItem = {
@@ -145,18 +139,12 @@ export default function FilterBar({
                     }}
                   >
                     <MenuItem value="date">Data/Hora Ligação</MenuItem>
-                    <MenuItem value="ani">ANI</MenuItem>
-                    <MenuItem value="dnis">DNIS</MenuItem>
-                    <MenuItem value="user">Nome do Agente</MenuItem>
-                    <MenuItem value="agentLogin">Login do Agente</MenuItem>
-                    <MenuItem value="cpf">CPF</MenuItem>
-                    <MenuItem value="cnpj">CNPJ</MenuItem>
-                    <MenuItem value="agencia">Agência</MenuItem>
-                    <MenuItem value="conta">Conta</MenuItem>
-                    <MenuItem value="ec">EC</MenuItem>
-                    <MenuItem value="contrato">Contrato</MenuItem>
-                    <MenuItem value="protocolo">Protocolo</MenuItem>
-                    <MenuItem value="category">Categoria</MenuItem>
+                    <MenuItem value="telefoneCliente">Telefone Cliente</MenuItem>
+                    <MenuItem value="telefoneDestino">Telefone Destino</MenuItem>
+                    <MenuItem value="documento">Documento</MenuItem>
+                    <MenuItem value="filaSkill">Fila/Skill</MenuItem>
+                    <MenuItem value="ambiente">Ambiente</MenuItem>
+                    <MenuItem value="duracao">Duração</MenuItem>
                     <MenuItem value="format">Formato</MenuItem>
                   </TextField>
                 )}

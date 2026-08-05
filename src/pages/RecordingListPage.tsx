@@ -5,8 +5,10 @@ import { LocalizationProvider } from '@mui/x-date-pickers'
 import FilterBar, { type FilterItem } from '../components/RecordingFilterBar'
 import RecordingTable from '../components/RecordingTable'
 import useRecordings from '../hooks/useRecordings'
+import { getAccessContext } from '../auth/accessContext'
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from "@mui/icons-material/Menu";
+import VideocamIcon from '@mui/icons-material/Videocam';
 
 export default function RecordingListPage() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -131,9 +133,16 @@ export default function RecordingListPage() {
             type="button"
             variant="contained"
             color="primary"
+            startIcon={<VideocamIcon />}
+            onClick={() => {
+              const context = getAccessContext()
+              window.location.assign(
+                `/video/${context ? `?group=${encodeURIComponent(context)}` : ''}`,
+              )
+            }}
             sx={{ fontWeight: 700 }}
           >
-          SearchVideo4ME
+            Buscar vídeos
           </Button>
 
           {/* MENU HAMBURGER - REMOVIDO */}
@@ -244,7 +253,7 @@ export default function RecordingListPage() {
         }}
       >
         <img
-          src="/banco-safra-logo.png"
+          src={`${import.meta.env.BASE_URL}banco-safra-logo.png`}
           alt="banco-safra-logo"
           style={{
             height: 120,

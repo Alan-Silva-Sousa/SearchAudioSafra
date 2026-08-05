@@ -1,6 +1,7 @@
 import type { RecordingMeta } from './useRecordings';
+import { authenticatedHeaders } from '../auth/accessContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/audio/api';
 
 export async function downloadSingleRecording(recording: RecordingMeta): Promise<void> {
   const id = recording.CallIDMaster;
@@ -14,7 +15,10 @@ export async function downloadSingleRecording(recording: RecordingMeta): Promise
 
 async function downloadSingleById(id: string, idOrigem?: string): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE_URL}/audio/download/${id}`);
+    const response = await fetch(`${API_BASE_URL}/audio/download/${id}`, {
+      headers: authenticatedHeaders(),
+      credentials: 'include',
+    });
 
     if (!response.ok) {
       throw new Error(`Erro ao baixar áudio: ${response.status}`);
@@ -35,8 +39,9 @@ async function downloadAsZip(ids: string[]): Promise<void> {
   try {
     const response = await fetch(`${API_BASE_URL}/audio/zip`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authenticatedHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ ids }),
+      credentials: 'include',
     });
 
     if (!response.ok) {
