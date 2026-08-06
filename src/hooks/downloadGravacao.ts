@@ -1,5 +1,5 @@
 import type { RecordingMeta } from './useRecordings';
-import { authenticatedHeaders } from '../auth/accessContext';
+import { authenticatedHeaders, getAccessContext } from '../auth/accessContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/audio/api';
 
@@ -35,24 +35,17 @@ async function downloadSingleById(id: string, idOrigem?: string): Promise<void> 
   }
 }
 
-async function downloadAsZip(ids: string[]): Promise<void> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/audio/zip`, {
-      method: 'POST',
-      headers: authenticatedHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ ids }),
-      credentials: 'include',
-    });
+function downloadAsZip(ids: string[]): void {
+  const params = new URLSearchParams({ accessGroup: getAccessContext() });
+  ids.forEach((id) => params.append('id', id));
 
-    if (!response.ok) {
-      throw new Error(`Erro ao gerar ZIP: ${response.status}`);
-    }
-
-    const blob = await response.blob();
-    triggerBrowserDownload(blob, 'gravacoes.zip');
-  } catch (error) {
-    console.error('[downloadGravacoes] Erro no download em massa:', error);
-  }
+  const link = document.createElement('a');
+  link.href = `${API_BASE_URL}/audio/zip/download?${params}`;
+  link.download = 'audios.zip';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  window.setTimeout(() => link.remove(), 60_000);
 }
 
 export async function downloadSelectedRecordings(ids: string[]): Promise<void> {
@@ -61,7 +54,7 @@ export async function downloadSelectedRecordings(ids: string[]): Promise<void> {
   if (ids.length === 1) {
     await downloadSingleById(ids[0]);
   } else {
-    await downloadAsZip(ids);
+    downloadAsZip(ids);
   }
 }
 
