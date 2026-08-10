@@ -17,7 +17,20 @@ const menuLabelMap = {
   ambiente: "Ambiente",
   duracao: "Duração",
   format: "Formato",
+  tamanho: "Tamanho",
 };
+
+function participantFieldLabel(name: string): string {
+  if (name === 'skill') return 'skill/fila';
+  return name;
+}
+
+function filterLabel(field: string): string {
+  if (field.startsWith('participant:')) {
+    return participantFieldLabel(field.slice('participant:'.length));
+  }
+  return menuLabelMap[field as keyof typeof menuLabelMap] || 'Selecione';
+}
 
 export type FilterItem = {
   field: string;
@@ -28,10 +41,12 @@ export type FilterItem = {
 
 export default function FilterBar({
   onSubmit,
-  onFilterChange
+  onFilterChange,
+  participantFields,
 }: {
   onSubmit: (filters: FilterItem[]) => void;
   onFilterChange?: (filters: FilterItem[]) => void;
+  participantFields: string[];
 }) {
   const { control, handleSubmit, setValue, watch, reset } = useForm<{ filters: FilterItem[] }>({
     defaultValues: {
@@ -121,7 +136,7 @@ export default function FilterBar({
                     InputLabelProps={{ sx: { color: 'text.primary' } }}
                     SelectProps={{
                       renderValue: (selected) =>
-                        menuLabelMap[selected as keyof typeof menuLabelMap] || "Selecione",
+                        filterLabel(String(selected)),
                       MenuProps: {
                         PaperProps: {
                           sx: {
@@ -139,13 +154,14 @@ export default function FilterBar({
                     }}
                   >
                     <MenuItem value="date">Data/Hora Ligação</MenuItem>
-                    <MenuItem value="telefoneCliente">Telefone Cliente</MenuItem>
-                    <MenuItem value="telefoneDestino">Telefone Destino</MenuItem>
-                    <MenuItem value="documento">Documento</MenuItem>
-                    <MenuItem value="filaSkill">Fila/Skill</MenuItem>
-                    <MenuItem value="ambiente">Ambiente</MenuItem>
+                    {participantFields.map((name) => (
+                      <MenuItem key={name} value={`participant:${name}`}>
+                        {participantFieldLabel(name)}
+                      </MenuItem>
+                    ))}
                     <MenuItem value="duracao">Duração</MenuItem>
                     <MenuItem value="format">Formato</MenuItem>
+                    <MenuItem value="tamanho">Tamanho</MenuItem>
                   </TextField>
                 )}
               />
@@ -188,7 +204,7 @@ export default function FilterBar({
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label={menuLabelMap[filters[index].field as keyof typeof menuLabelMap] || "Valor"}
+                      label={filterLabel(filters[index].field) || "Valor"}
                       fullWidth
                       sx={{
                         backgroundColor: 'background.default',

@@ -52,6 +52,7 @@ const FILTER_FIELD_TO_TYPE: Record<string, string> = {
   ambiente: 'Environment',
   duracao: 'Duration',
   format: 'Format',
+  tamanho: 'FileSize',
 };
 
 function normalizeDuration(value: string): string {
@@ -62,10 +63,31 @@ function normalizeDuration(value: string): string {
   return value.trim();
 }
 
+function normalizeFileSize(value: string): string {
+  const match = value.trim().replace(',', '.').match(/^([0-9]+(?:\.[0-9]+)?)\s*(B|KB|MB|GB)?$/i);
+  if (!match) return value.trim();
+  const units: Record<string, number> = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3 };
+  return String(Math.round(Number(match[1]) * units[(match[2] || 'B').toUpperCase()]));
+}
+
 export default function useRecordings() {
   const [data, setData] = useState<RecordingMeta[]>([])
   const [dataUsers, setDataUsers] = useState<UserMeta[]>([])
   const [loading, setLoading] = useState(false)
+  const [filterFields, setFilterFields] = useState<string[]>([])
+
+  async function fetchFilterFields() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/audio/filter-fields`, {
+        headers: authenticatedHeaders(),
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error(String(response.status));
+      setFilterFields(await response.json());
+    } catch {
+      setFilterFields([]);
+    }
+  }
 
   function buildQueryParams(filters: FilterItem[]): URLSearchParams {
     const params = new URLSearchParams();
@@ -73,16 +95,24 @@ export default function useRecordings() {
     filters.forEach(filter => {
       if (!filter.field) return;
 
-      const filterType = FILTER_FIELD_TO_TYPE[filter.field];
+      const participantField = filter.field.startsWith('participant:')
+        ? filter.field.slice('participant:'.length)
+        : '';
+      const filterType = participantField ? 'ParticipantData' : FILTER_FIELD_TO_TYPE[filter.field];
       if (!filterType) return;
 
       const value = filter.field === 'date' ? filter.start : filter.value;
       if (!value) return;
 
       params.append('filterType', filterType);
+      params.append('filterField', participantField);
       params.append(
         'filterValue',
-        filter.field === 'duracao' ? normalizeDuration(value) : value,
+        filter.field === 'duracao'
+          ? normalizeDuration(value)
+          : filter.field === 'tamanho'
+            ? normalizeFileSize(value)
+            : value,
       );
     });
 
@@ -115,5 +145,5 @@ export default function useRecordings() {
     }
   }
 
-  return { dataUsers, data, fetchRecordings, loading }
+  return { dataUsers, data, fetchRecordings, fetchFilterFields, filterFields, loading }
 }

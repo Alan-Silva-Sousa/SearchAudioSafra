@@ -22,7 +22,7 @@ export default function RecordingListPage() {
     setAnchorEl(null);
   };
 
-  const { data: recordings, fetchRecordings, loading } = useRecordings()
+  const { data: recordings, fetchRecordings, fetchFilterFields, filterFields, loading } = useRecordings()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [email, setEmail] = useState('')
   const [showDateRangeAlert, setShowDateRangeAlert] = useState(false)
@@ -83,6 +83,7 @@ export default function RecordingListPage() {
     if (email) {
       setEmail(email)
     }
+    void fetchFilterFields()
   }, [])
 
   const handleFilterChange = useCallback((filters: FilterItem[]) => {
@@ -215,7 +216,7 @@ export default function RecordingListPage() {
 
         <Box  margin="0 0 0 0" sx={{ mb: 4 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <FilterBar onSubmit={handleFilterSubmit} onFilterChange={handleFilterChange} />
+            <FilterBar participantFields={filterFields} onSubmit={handleFilterSubmit} onFilterChange={handleFilterChange} />
           </LocalizationProvider>
         </Box>
 
