@@ -9,6 +9,7 @@ import { getAccessContext } from '../auth/accessContext'
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from "@mui/icons-material/Menu";
 import VideocamIcon from '@mui/icons-material/Videocam';
+import { PERMISSIONS, usePermissions } from '../hooks/usePermissions'
 
 export default function RecordingListPage() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -22,6 +23,7 @@ export default function RecordingListPage() {
     setAnchorEl(null);
   };
 
+  const { can } = usePermissions()
   const { data: recordings, fetchRecordings, fetchFilterFields, filterFields, loading } = useRecordings()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [email, setEmail] = useState('')
@@ -130,6 +132,7 @@ export default function RecordingListPage() {
 
           </Typography>
 
+          <Stack direction="row" spacing={2} alignItems="center">
           <Button
             type="button"
             variant="contained"
@@ -145,6 +148,12 @@ export default function RecordingListPage() {
           >
             Buscar vídeos
           </Button>
+          {can(PERMISSIONS.AUDIT_READ) && (
+            <Button variant="outlined" onClick={() => navigate('/audit')} sx={{ fontWeight: 700 }}>
+              Auditoria
+            </Button>
+          )}
+          </Stack>
 
           {/* MENU HAMBURGER - REMOVIDO */}
           {/* <Container sx={{ display: "flex", justifyContent: "flex-end" }}>
@@ -214,13 +223,17 @@ export default function RecordingListPage() {
         </Box> */}
 
 
+        {!can(PERMISSIONS.RECORDING_SEARCH) ? (
+          <Alert severity="warning">Você não tem permissão para pesquisar gravações.</Alert>
+        ) : (
         <Box  margin="0 0 0 0" sx={{ mb: 4 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <FilterBar participantFields={filterFields} onSubmit={handleFilterSubmit} onFilterChange={handleFilterChange} />
           </LocalizationProvider>
         </Box>
+        )}
 
-        {loading ? (
+        {!can(PERMISSIONS.RECORDING_SEARCH) ? null : loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
             <CircularProgress sx={{ color: 'primary.main' }} />
           </Box>

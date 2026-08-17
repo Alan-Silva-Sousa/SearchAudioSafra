@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import type { RecordingMeta } from '../hooks/useRecordings'
 import { downloadSingleRecording } from '../hooks/downloadGravacao';
 import { authenticatedHeaders } from '../auth/accessContext';
+import DownloadJustificationDialog from './DownloadJustificationDialog';
+import { PERMISSIONS, usePermissions } from '../hooks/usePermissions';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/audio/api';
 
@@ -67,7 +69,9 @@ function AuthorizedAudio({ recording }: { recording: RecordingMeta }) {
 
 export default function RecordingRow({ recording, checked, onCheck }: Props) {
 
+  const { can, downloadJustificationRequired } = usePermissions();
   const [open, setOpen] = useState(false);
+  const [justificationOpen, setJustificationOpen] = useState(false);
 
   function handleOpenRow() {
     setOpen(o => !o);
@@ -145,7 +149,11 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
               alignItems: 'flex-start'
             }}>
               {/* O backend valida a sessão antes de entregar a mídia. */}
-              <AuthorizedAudio recording={recording} />
+              {can(PERMISSIONS.RECORDING_PLAY) ? (
+                <AuthorizedAudio recording={recording} />
+              ) : (
+                <Typography variant="body2" color="text.secondary">Reprodução não autorizada.</Typography>
+              )}
 
               {participantDataEntries(recording.ParticipantData).length > 0 && (
                 <Box sx={{ width: '100%', mt: 1 }}>
@@ -180,16 +188,30 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
                 <strong>Tamanho:</strong> {formatFileSize(recording.DestinationFileSize)}
               </Typography>
 
+              {can(PERMISSIONS.RECORDING_DOWNLOAD) && (
               <Stack direction="row" spacing={1}>
                 <Tooltip title="Download do áudio">
                   <Button
                     color="primary"
                     startIcon={<Download />}
-                    onClick={() => downloadSingleRecording(recording)}
+                    onClick={() => {
+                      if (downloadJustificationRequired) setJustificationOpen(true);
+                      else void downloadSingleRecording(recording);
+                    }}
                   >
                   </Button>
                 </Tooltip>
               </Stack>
+              )}
+              <DownloadJustificationDialog
+                open={justificationOpen}
+                kind="SINGLE"
+                onCancel={() => setJustificationOpen(false)}
+                onConfirm={(justification) => {
+                  setJustificationOpen(false);
+                  void downloadSingleRecording(recording, { justification });
+                }}
+              />
             </Box>
           </Collapse>
         </TableCell>

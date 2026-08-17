@@ -5,6 +5,8 @@ import {
 import RecordingRow from './RecordingRow'
 import type { RecordingMeta } from '../hooks/useRecordings'
 import { downloadSelectedRecordings } from '../hooks/downloadGravacao'
+import DownloadJustificationDialog from './DownloadJustificationDialog'
+import { PERMISSIONS, usePermissions } from '../hooks/usePermissions'
 
 const rowsPerPage = 35;
 
@@ -19,8 +21,10 @@ export default function RecordingTable({
   setSelectedIds: (ids: string[]) => void
 }) {
 
+  const { can, downloadJustificationRequired } = usePermissions();
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false);
+  const [justificationOpen, setJustificationOpen] = useState(false);
 
   useEffect(() => { setPage(0) }, [recordings])
 
@@ -46,13 +50,22 @@ export default function RecordingTable({
     else setSelectedIds(selectedIds.filter(x => x !== CallIDMaster))
   }
 
-  async function handleDownloadSelected() {
+  async function runDownload(justification?: string) {
     setLoading(true);
     try {
-      await downloadSelectedRecordings(selectedIds);
+      await downloadSelectedRecordings(selectedIds, { justification });
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleDownloadSelected() {
+    if (!can(PERMISSIONS.RECORDING_DOWNLOAD) || !selectedIds.length) return;
+    if (downloadJustificationRequired) {
+      setJustificationOpen(true);
+      return;
+    }
+    await runDownload();
   }
 
   if (!recordings.length) return null
@@ -60,6 +73,7 @@ export default function RecordingTable({
   return (
     <Paper sx={{ width: '100%', mx: 'auto' }}>
       {/* Botão de download em lote */}
+      {can(PERMISSIONS.RECORDING_DOWNLOAD) && (
       <Box sx={{ p: 2, pb: 0, display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           variant="contained"
@@ -84,6 +98,16 @@ export default function RecordingTable({
           )}
         </Button>
       </Box>
+      )}
+      <DownloadJustificationDialog
+        open={justificationOpen}
+        kind={selectedIds.length > 1 ? 'ZIP' : 'SINGLE'}
+        onCancel={() => setJustificationOpen(false)}
+        onConfirm={(justification) => {
+          setJustificationOpen(false);
+          void runDownload(justification);
+        }}
+      />
 
       {/* Container para inverter a posição da barra de rolagem */}
       <Box sx={{

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "node --test test/queryEvents.test.mjs"
      },
   "dependencies": {
     "@emotion/react": "^11.11.0",
