@@ -4,47 +4,31 @@ import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import type { AuditEventsQuery } from '../audit/contract';
+import { AUDIT_ACTIONS, type AuditEventsQuery } from '../audit/contract';
 
 export type AuditFilters = {
-  from: string;
-  to: string;
+  start: string;
+  end: string;
   user: string;
   action: string;
   result: string;
-  group: string;
+  accessGroup: string;
   conversationId: string;
   recordingId: string;
+  correlationId: string;
 };
 
 const emptyFilters: AuditFilters = {
-  from: '',
-  to: '',
+  start: '',
+  end: '',
   user: '',
   action: '',
   result: '',
-  group: '',
+  accessGroup: '',
   conversationId: '',
   recordingId: '',
+  correlationId: '',
 };
-
-const ACTIONS = [
-  'LOGIN',
-  'SEARCH',
-  'PLAY',
-  'DOWNLOAD',
-  'DOWNLOAD_ZIP',
-  'AUDIT_EXPORT',
-  'S3_EXPORT_STARTED',
-  'S3_EXPORT_SUCCESS',
-  'S3_EXPORT_FAILURE',
-  'S3_RECONCILIATION_SUCCESS',
-  'S3_RECONCILIATION_FAILURE',
-  'PURGE_REQUESTED',
-  'PURGE_BLOCKED',
-  'PURGE_SUCCESS',
-  'PURGE_FAILURE',
-];
 
 function parseDate(value?: string) {
   return value ? parse(value, 'yyyy-MM-dd', new Date()) : null;
@@ -59,14 +43,15 @@ export default function AuditFilterBar({
 
   const submit = (values: AuditFilters) => {
     onSubmit({
-      from: values.from || undefined,
-      to: values.to || undefined,
+      start: values.start || undefined,
+      end: values.end || undefined,
       user: values.user.trim() || undefined,
       action: values.action || undefined,
       result: values.result || undefined,
-      group: values.group.trim() || undefined,
+      accessGroup: values.accessGroup.trim() || undefined,
       conversationId: values.conversationId.trim() || undefined,
       recordingId: values.recordingId.trim() || undefined,
+      correlationId: values.correlationId.trim() || undefined,
     });
   };
 
@@ -76,7 +61,7 @@ export default function AuditFilterBar({
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={3}>
             <Controller
-              name="from"
+              name="start"
               control={control}
               render={({ field }) => (
                 <DesktopDatePicker
@@ -91,7 +76,7 @@ export default function AuditFilterBar({
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Controller
-              name="to"
+              name="end"
               control={control}
               render={({ field }) => (
                 <DesktopDatePicker
@@ -114,7 +99,7 @@ export default function AuditFilterBar({
               render={({ field }) => (
                 <TextField {...field} select label="Ação" fullWidth>
                   <MenuItem value="">Todas</MenuItem>
-                  {ACTIONS.map((action) => (
+                  {AUDIT_ACTIONS.map((action) => (
                     <MenuItem key={action} value={action}>{action}</MenuItem>
                   ))}
                 </TextField>
@@ -136,13 +121,16 @@ export default function AuditFilterBar({
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <Controller name="group" control={control} render={({ field }) => <TextField {...field} label="Grupo" fullWidth />} />
+            <Controller name="accessGroup" control={control} render={({ field }) => <TextField {...field} label="Grupo" fullWidth />} />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Controller name="conversationId" control={control} render={({ field }) => <TextField {...field} label="conversationId" fullWidth />} />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Controller name="recordingId" control={control} render={({ field }) => <TextField {...field} label="recordingId" fullWidth />} />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Controller name="correlationId" control={control} render={({ field }) => <TextField {...field} label="correlationId" fullWidth />} />
           </Grid>
         </Grid>
       </LocalizationProvider>

@@ -1,63 +1,45 @@
 import type { RecordingMeta } from './useRecordings';
-import { authenticatedHeaders, getAccessContext } from '../auth/accessContext';
-import type { DownloadRequestMeta } from '../audit/contract';
+import { authenticatedHeaders } from '../auth/accessContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/audio/api';
 
-function downloadQuery(meta: DownloadRequestMeta): URLSearchParams {
-  const params = new URLSearchParams({
-    downloadKind: meta.kind,
-  });
-  if (meta.justification) params.set('justification', meta.justification);
-  return params;
-}
-
-export async function downloadSingleRecording(
-  recording: RecordingMeta,
-  meta: Omit<DownloadRequestMeta, 'kind' | 'recordingIds'> = {},
-): Promise<void> {
+export async function downloadSingleRecording(recording: RecordingMeta): Promise<void> {
   const id = recording.CallIDMaster;
   if (!id) return;
-  await downloadSingleById(id, recording.IdOrigem, { justification: meta.justification });
+  await downloadSingleById(id, recording.IdOrigem);
 }
 
-async function downloadSingleById(id: string, idOrigem?: string, extra: { justification?: string } = {}): Promise<void> {
-  const params = downloadQuery({ kind: 'SINGLE', recordingIds: [id], justification: extra.justification });
-  const response = await fetch(`${API_BASE_URL}/audio/download/${id}?${params}`, {
+async function downloadSingleById(id: string, idOrigem?: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/audio/download/${encodeURIComponent(id)}`, {
     headers: authenticatedHeaders(),
     credentials: 'include',
   });
+  if (response.status === 403) throw new Error('Permissão de download obrigatória');
   if (!response.ok) throw new Error(`Erro ao baixar áudio: ${response.status}`);
   const disposition = response.headers.get('Content-Disposition') || '';
   const match = disposition.match(/filename="(.+)"/);
-  const fileName = match ? match[1] : `${idOrigem || id}.mp3`;
-  const blob = await response.blob();
-  triggerBrowserDownload(blob, fileName);
+  triggerBrowserDownload(await response.blob(), match ? match[1] : `${idOrigem || id}.mp3`);
 }
 
-function downloadAsZip(ids: string[], justification?: string): void {
-  const params = downloadQuery({ kind: 'ZIP', recordingIds: ids, justification });
-  params.set('accessGroup', getAccessContext());
-  ids.forEach((id) => params.append('id', id));
-  const link = document.createElement('a');
-  link.href = `${API_BASE_URL}/audio/zip/download?${params}`;
-  link.download = 'audios.zip';
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  window.setTimeout(() => link.remove(), 60_000);
+async function downloadAsZip(ids: string[]): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/audio/zip`, {
+    method: 'POST',
+    headers: authenticatedHeaders({ 'Content-Type': 'application/json' }),
+    credentials: 'include',
+    body: JSON.stringify({ ids }),
+  });
+  if (response.status === 403) throw new Error('Permissão de download obrigatória');
+  if (!response.ok) throw new Error(`Erro ao baixar ZIP: ${response.status}`);
+  triggerBrowserDownload(await response.blob(), 'audios.zip');
 }
 
-export async function downloadSelectedRecordings(
-  ids: string[],
-  extra: { justification?: string } = {},
-): Promise<void> {
+export async function downloadSelectedRecordings(ids: string[]): Promise<void> {
   if (!ids.length) return;
   if (ids.length === 1) {
-    await downloadSingleById(ids[0], undefined, extra);
+    await downloadSingleById(ids[0]);
     return;
   }
-  downloadAsZip(ids, extra.justification);
+  await downloadAsZip(ids);
 }
 
 function triggerBrowserDownload(blob: Blob, fileName: string): void {

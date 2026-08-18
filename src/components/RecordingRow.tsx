@@ -73,6 +73,14 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
   const [open, setOpen] = useState(false);
   const [justificationOpen, setJustificationOpen] = useState(false);
 
+  useEffect(() => {
+    if (!open || !recording.CallIDMaster) return;
+    void fetch(`${API_BASE_URL}/audio/${encodeURIComponent(recording.CallIDMaster)}`, {
+      headers: authenticatedHeaders(),
+      credentials: 'include',
+    });
+  }, [open, recording.CallIDMaster]);
+
   function handleOpenRow() {
     setOpen(o => !o);
   }
@@ -207,9 +215,9 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
                 open={justificationOpen}
                 kind="SINGLE"
                 onCancel={() => setJustificationOpen(false)}
-                onConfirm={(justification) => {
+                onConfirm={() => {
                   setJustificationOpen(false);
-                  void downloadSingleRecording(recording, { justification });
+                  void downloadSingleRecording(recording);
                 }}
               />
             </Box>

@@ -23,8 +23,8 @@ import type { AuditEventsQuery } from '../audit/contract';
 export default function AuditPage() {
   const navigate = useNavigate();
   const { can, loaded } = usePermissions();
-  const { data, loading, mocked, fetchEvents } = useAuditEvents();
-  const [query, setQuery] = useState<AuditEventsQuery>({ page: 1, pageSize: 20 });
+  const { data, loading, error, fetchEvents } = useAuditEvents();
+  const [query, setQuery] = useState<AuditEventsQuery>({ page: 1, limit: 50 });
 
   useEffect(() => {
     if (loaded && can(PERMISSIONS.AUDIT_READ)) {
@@ -51,7 +51,7 @@ export default function AuditPage() {
     );
   }
 
-  const totalPages = Math.max(1, Math.ceil(data.total / data.pageSize));
+  const totalPages = Math.max(1, Math.ceil(data.total / data.limit));
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 5 }}>
@@ -78,13 +78,14 @@ export default function AuditPage() {
             <Button variant="outlined" onClick={() => navigate('/')}>Voltar às gravações</Button>
           </Box>
         </Box>
-        {mocked && (
           <Alert severity="info" sx={{ mb: 3 }}>
-            API de auditoria ainda não integrada. Exibindo eventos simulados (somente leitura).
+            Eventos somente leitura. Identidade, IP e resultado não são enviados pelo frontend.
           </Alert>
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
         )}
         <Box sx={{ mb: 4 }}>
-          <AuditFilterBar onSubmit={(filters) => setQuery({ ...filters, page: 1, pageSize: data.pageSize })} />
+          <AuditFilterBar onSubmit={(filters) => setQuery({ ...filters, page: 1, limit: data.limit })} />
         </Box>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}><CircularProgress /></Box>
@@ -100,6 +101,7 @@ export default function AuditPage() {
                   <TableCell sx={{ fontWeight: 700 }}>Grupo</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>conversationId</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>recordingId</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>correlationId</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -112,12 +114,13 @@ export default function AuditPage() {
                     <TableCell>{event.accessGroup || '-'}</TableCell>
                     <TableCell>{event.conversationId || '-'}</TableCell>
                     <TableCell>{event.recordingId || '-'}</TableCell>
+                    <TableCell>{event.correlationId || '-'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={8}>
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, py: 1 }}>
                       <Button
                         size="small"

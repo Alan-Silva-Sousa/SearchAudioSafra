@@ -1,29 +1,17 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import { Alert, Box, Container, Typography, CircularProgress, Paper, IconButton, Menu, MenuItem, Stack, Button } from '@mui/material'
+import { useCallback, useEffect, useState } from 'react'
+import { Alert, Box, Container, Typography, CircularProgress, Paper, Stack, Button } from '@mui/material'
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import FilterBar, { type FilterItem } from '../components/RecordingFilterBar'
 import RecordingTable from '../components/RecordingTable'
 import useRecordings from '../hooks/useRecordings'
-import { getAccessContext } from '../auth/accessContext'
+import { appUrl } from '../auth/accessContext'
 import { useNavigate } from 'react-router-dom';
-import MenuIcon from "@mui/icons-material/Menu";
 import VideocamIcon from '@mui/icons-material/Videocam';
 import { PERMISSIONS, usePermissions } from '../hooks/usePermissions'
 
 export default function RecordingListPage() {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const { can } = usePermissions()
+  const { can, canAccessVideo } = usePermissions()
   const { data: recordings, fetchRecordings, fetchFilterFields, filterFields, loading } = useRecordings()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [email, setEmail] = useState('')
@@ -133,21 +121,18 @@ export default function RecordingListPage() {
           </Typography>
 
           <Stack direction="row" spacing={2} alignItems="center">
+          {canAccessVideo && (
           <Button
             type="button"
             variant="contained"
             color="primary"
             startIcon={<VideocamIcon />}
-            onClick={() => {
-              const context = getAccessContext()
-              window.location.assign(
-                `/video/${context ? `?group=${encodeURIComponent(context)}` : ''}`,
-              )
-            }}
+            onClick={() => window.location.assign(appUrl('video'))}
             sx={{ fontWeight: 700 }}
           >
             Buscar vídeos
           </Button>
+          )}
           {can(PERMISSIONS.AUDIT_READ) && (
             <Button variant="outlined" onClick={() => navigate('/audit')} sx={{ fontWeight: 700 }}>
               Auditoria
