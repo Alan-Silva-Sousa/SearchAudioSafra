@@ -6,6 +6,8 @@ import { downloadSingleRecording } from '../hooks/downloadGravacao';
 import { authenticatedHeaders } from '../auth/accessContext';
 import DownloadJustificationDialog from './DownloadJustificationDialog';
 import { PERMISSIONS, usePermissions } from '../hooks/usePermissions';
+import { formatPhone } from '../utils/phone';
+import { formatCpfCnpj } from '../utils/document';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/audio/api';
 
@@ -117,7 +119,7 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
   const startTime = participantValue(participantData, 'Hora Inicio') || recording.RecordStart;
   const customerPhone = participantValue(participantData, 'Telefone Cliente', 'telefone') || recording.ANI?.replace(/^tel:\+?/, '');
   const destinationPhone = participantValue(participantData, 'Telefone Destino') || recording.DNIS?.replace(/^tel:\+?/, '');
-  const document = participantValue(participantData, 'Doc Cliente', 'doc_cliente', 'CPF', 'CNPJ');
+  const document = recording.CPF || recording.CNPJ || participantValue(participantData, 'Doc Cliente', 'doc_cliente', 'CPF', 'CNPJ');
   const skill = participantValue(participantData, 'skill', 'transfer_filas');
   const environment = participantValue(participantData, 'Ambiente');
 
@@ -145,9 +147,9 @@ export default function RecordingRow({ recording, checked, onCheck }: Props) {
             minute: '2-digit',
           })}
         </TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{customerPhone || '-'}</TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{destinationPhone || '-'}</TableCell>
-        <TableCell sx={{ color: 'primary.main' }}>{document || '-'}</TableCell>
+        <TableCell sx={{ color: 'primary.main', whiteSpace: 'nowrap' }}>{formatPhone(customerPhone)}</TableCell>
+        <TableCell sx={{ color: 'primary.main', whiteSpace: 'nowrap' }}>{formatPhone(destinationPhone)}</TableCell>
+        <TableCell sx={{ color: 'primary.main', whiteSpace: 'nowrap' }}>{formatCpfCnpj(document)}</TableCell>
         <TableCell sx={{ color: 'primary.main' }}>{skill || '-'}</TableCell>
         <TableCell sx={{ color: 'primary.main' }}>{environment || '-'}</TableCell>
         <TableCell sx={{ color: 'primary.main' }}>{formatDuration(recording.RecordDuration)}</TableCell>

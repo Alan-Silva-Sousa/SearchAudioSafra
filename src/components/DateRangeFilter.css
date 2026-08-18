@@ -1,0 +1,180 @@
+.date-range-filter {
+  --drf-accent: #0d4f8b;
+  --drf-accent-soft: #E3F2FD;
+  --drf-accent-hover: #E8F1FB;
+  --drf-text: #213547;
+  --drf-muted: #5C6B7A;
+  --drf-surface: #fff;
+  --drf-border: #d6e3f0;
+  width: 100%;
+  max-width: 420px;
+}
+
+.date-range-filter--dark {
+  --drf-accent: #4ea3ff;
+  --drf-accent-soft: #0d4f8b;
+  --drf-accent-hover: #122a48;
+  --drf-text: #e9eef5;
+  --drf-muted: #9bb0c9;
+  --drf-surface: #0b1d36;
+  --drf-border: #375a8f;
+}
+
+.date-range-filter .react-datepicker-wrapper,
+.date-range-filter .react-datepicker__input-container {
+  width: 100%;
+  display: block;
+}
+
+.date-range-popper {
+  z-index: 2000 !important;
+}
+
+.date-range-calendar.react-datepicker {
+  font-family: "Montserrat", Arial, sans-serif;
+  background: var(--drf-surface);
+  border: 1px solid var(--drf-border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(13, 79, 139, 0.16);
+}
+
+.date-range-calendar .react-datepicker__header {
+  background: var(--drf-surface);
+  border-bottom: 1px solid var(--drf-border);
+  padding: 8px 8px 12px;
+}
+
+.date-range-calendar .react-datepicker__navigation {
+  display: none;
+}
+
+.date-range-header {
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  column-gap: 4px;
+}
+
+.date-range-header-labels {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-range-header-label,
+.date-range-header-static {
+  border: none;
+  background: transparent;
+  color: var(--drf-accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  font-family: "Montserrat", Arial, sans-serif;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.date-range-header-label {
+  cursor: pointer;
+}
+
+.date-range-header-label:hover {
+  background: var(--drf-accent-hover);
+}
+
+.date-range-nav-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px 8px 4px;
+  min-width: 280px;
+}
+
+.date-range-nav-item {
+  border: none;
+  background: transparent;
+  color: var(--drf-accent);
+  font-weight: 600;
+  font-family: "Montserrat", Arial, sans-serif;
+  padding: 10px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.date-range-nav-item:hover {
+  background: var(--drf-accent-hover);
+}
+
+.date-range-nav-item.is-selected {
+  background: var(--drf-accent);
+  color: #fff;
+}
+
+.date-range-nav-item.is-disabled {
+  color: #b0bec5;
+  cursor: default;
+  pointer-events: none;
+}
+
+.date-range-calendar.nav-months .react-datepicker__month,
+.date-range-calendar.nav-years .react-datepicker__month,
+.date-range-calendar.nav-months .react-datepicker__day-names,
+.date-range-calendar.nav-years .react-datepicker__day-names {
+  display: none;
+}
+
+.date-range-calendar .react-datepicker__day-name {
+  color: var(--drf-muted);
+  font-weight: 600;
+  width: 2.2rem;
+  line-height: 2.2rem;
+}
+
+.date-range-calendar .react-datepicker__day {
+  width: 2.2rem;
+  line-height: 2.2rem;
+  color: var(--drf-text);
+  border-radius: 50%;
+  margin: 0.15rem;
+}
+
+.date-range-calendar .react-datepicker__day:hover {
+  background-color: var(--drf-accent-hover);
+  color: var(--drf-accent);
+  border-radius: 50%;
+}
+
+.date-range-calendar .react-datepicker__day--today {
+  font-weight: 700;
+  border: 1px solid var(--drf-accent);
+}
+
+.date-range-calendar .react-datepicker__day--in-range,
+.date-range-calendar .react-datepicker__day--in-selecting-range {
+  background-color: var(--drf-accent-soft) !important;
+  color: var(--drf-accent) !important;
+  border-radius: 0 !important;
+}
+
+.date-range-calendar .react-datepicker__day--range-start,
+.date-range-calendar .react-datepicker__day--range-end,
+.date-range-calendar .react-datepicker__day--selected {
+  background-color: var(--drf-accent) !important;
+  color: #fff !important;
+  border-radius: 50% !important;
+}
+
+.date-range-calendar .react-datepicker__day--keyboard-selected {
+  background-color: transparent;
+  color: var(--drf-accent);
+  box-shadow: inset 0 0 0 1px var(--drf-accent);
+}
+
+.date-range-calendar .react-datepicker__triangle {
+  display: none;
+}

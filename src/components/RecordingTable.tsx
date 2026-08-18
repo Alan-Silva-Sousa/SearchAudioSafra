@@ -131,8 +131,8 @@ export default function RecordingTable({
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Data/Hora</TableCell>
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Telefone Cliente</TableCell>
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Telefone Destino</TableCell>
-            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Documento</TableCell>
-            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Fila/Skill</TableCell>
+            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>CPF/CNPJ</TableCell>
+            <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Skill/Fila</TableCell>
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Ambiente</TableCell>
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Duração</TableCell>
             <TableCell sx={{ color: 'primary.main', fontWeight: 700 }}>Formato</TableCell>

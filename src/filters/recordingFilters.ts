@@ -1,4 +1,4 @@
-export type RecordingFilterKind = 'text' | 'date';
+export type RecordingFilterKind = 'text';
 
 export type RecordingFilterDefinition = {
   field: string;
@@ -10,10 +10,7 @@ export type RecordingFilterDefinition = {
 export const RECORDING_FILTERS: RecordingFilterDefinition[] = [
   { field: 'telefoneCliente', label: 'Telefone de Origem', kind: 'text' },
   { field: 'telefoneDestino', label: 'Telefone de Destino', kind: 'text' },
-  { field: 'recordStartStart', label: 'Data/Hora Início Ligação', kind: 'date' },
-  { field: 'recordStartEnd', label: 'Data/Hora Final Ligação', kind: 'date' },
-  { field: 'cpf', label: 'CPF', kind: 'text', participantKey: 'CPF' },
-  { field: 'cnpj', label: 'CNPJ', kind: 'text', participantKey: 'CNPJ' },
+  { field: 'documento', label: 'CPF/CNPJ', kind: 'text' },
   { field: 'agencia', label: 'AGENCIA', kind: 'text', participantKey: 'AGENCIA' },
   { field: 'conta', label: 'CONTA', kind: 'text', participantKey: 'CONTA' },
   { field: 'ec', label: 'EC', kind: 'text', participantKey: 'EC' },
@@ -28,8 +25,4 @@ const filterByField = Object.fromEntries(RECORDING_FILTERS.map((item) => [item.f
 
 export function recordingFilterLabel(field: string): string {
   return filterByField[field]?.label || 'Selecione';
-}
-
-export function isRecordingDateFilter(field: string): boolean {
-  return filterByField[field]?.kind === 'date';
 }
