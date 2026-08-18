@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { normalizeAuditEvent, type AuditEventsQuery, type AuditEventsResponse } from '../audit/contract';
 import { authenticatedHeaders } from '../auth/accessContext';
+import { toQueryEnd, toQueryStart } from '../utils/dateInput';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/audio/api';
 
@@ -13,7 +14,13 @@ export default function useAuditEvents() {
     setLoading(true);
     setError('');
     const params = new URLSearchParams();
-    const payload: AuditEventsQuery = { page: 1, limit: 50, ...query };
+    const payload: AuditEventsQuery = {
+      page: 1,
+      limit: 50,
+      ...query,
+      start: toQueryStart(query.start),
+      end: toQueryEnd(query.end),
+    };
     Object.entries(payload).forEach(([key, value]) => {
       if (value === undefined || value === '') return;
       params.set(key, String(value));
