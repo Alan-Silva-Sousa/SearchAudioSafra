@@ -1,10 +1,10 @@
-import { Box, Grid, TextField, MenuItem, Button, IconButton, Stack, Typography } from "@mui/material";
+import { Box, Grid, TextField, MenuItem, Button, IconButton, Stack } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import ClearIcon from "@mui/icons-material/Clear";
 import AddIcon from "@mui/icons-material/Add";
-import { useEffect, useState } from "react";
-import { RECORDING_FILTERS, recordingFilterLabel } from "../filters/recordingFilters";
-import DateRangeFilter, { defaultDateRange } from "./DateRangeFilter";
+import { useEffect } from "react";
+import { isRecordingDateRangeFilter, RECORDING_FILTERS, recordingFilterLabel } from "../filters/recordingFilters";
+import DateRangeFilter from "./DateRangeFilter";
 import TimeRangeFilter from "./TimeRangeFilter";
 
 export type FilterItem = {
@@ -12,7 +12,20 @@ export type FilterItem = {
   value: string;
   start?: string;
   end?: string;
+  hourStart?: string;
+  hourEnd?: string;
 };
+
+function fieldSx(dark: boolean) {
+  return {
+    backgroundColor: dark ? '#0b1d36' : 'background.default',
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderColor: dark ? '#375a8f' : 'divider' },
+      "&:hover fieldset": { borderColor: dark ? '#0d4f8b' : 'primary.main' },
+      "&.Mui-focused fieldset": { borderColor: dark ? '#0d4f8b' : 'primary.main' },
+    },
+  };
+}
 
 export default function FilterBar({
   onSubmit,
@@ -25,45 +38,18 @@ export default function FilterBar({
 }) {
   const { control, handleSubmit, setValue, watch, reset } = useForm<{ filters: FilterItem[] }>({
     defaultValues: {
-      filters: [{ field: "", value: "" }],
+      filters: [{ field: "", value: "", start: "", end: "", hourStart: "", hourEnd: "" }],
     },
   });
 
-  const initialRange = defaultDateRange();
-  const [dateStart, setDateStart] = useState(initialRange.start);
-  const [dateEnd, setDateEnd] = useState(initialRange.end);
-  const [timeStart, setTimeStart] = useState("");
-  const [timeEnd, setTimeEnd] = useState("");
   const filters = watch("filters");
-
-  const buildFilters = (extra: FilterItem[] = filters): FilterItem[] => {
-    const next: FilterItem[] = [
-      { field: "RecordStart", value: "", start: dateStart, end: dateEnd },
-    ];
-    if (timeStart || timeEnd) {
-      next.push({
-        field: "RecordStartHour",
-        value: "",
-        start: timeStart || "00:00",
-        end: timeEnd || "23:59",
-      });
-    }
-    next.push(...extra.filter((item) => item.field && item.field !== "RecordStart" && item.field !== "RecordStartHour"));
-    return next;
-  };
 
   useEffect(() => {
     onFilterChange?.(filters);
   }, [JSON.stringify(filters), onFilterChange]);
 
-  useEffect(() => {
-    onSubmit(buildFilters([{ field: "", value: "" }]));
-    // busca inicial com os últimos 15 dias
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const addFilter = () => {
-    setValue("filters", [...filters, { field: "", value: "" }]);
+    setValue("filters", [...filters, { field: "", value: "", start: "", end: "", hourStart: "", hourEnd: "" }]);
   };
 
   const removeFilter = (index: number) => {
@@ -74,17 +60,11 @@ export default function FilterBar({
   };
 
   const handleClearAll = () => {
-    const range = defaultDateRange();
-    setDateStart(range.start);
-    setDateEnd(range.end);
-    setTimeStart("");
-    setTimeEnd("");
-    reset({ filters: [{ field: "", value: "" }] });
-    onSubmit([{ field: "RecordStart", value: "", start: range.start, end: range.end }]);
+    reset({ filters: [{ field: "", value: "", start: "", end: "", hourStart: "", hourEnd: "" }] });
   };
 
   const handleFilter = (data: { filters: FilterItem[] }) => {
-    onSubmit(buildFilters(data.filters));
+    onSubmit(data.filters);
   };
 
   return (
@@ -101,36 +81,6 @@ export default function FilterBar({
       }}
     >
       <Grid container direction="column" spacing={2}>
-        <Grid item>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: dark ? "#e9eef5" : "text.primary" }}>
-            Data/Hora Ligação
-          </Typography>
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "flex-start" }}>
-            <Box sx={{ flex: "1 1 320px", minWidth: 280 }}>
-              <DateRangeFilter
-                dark={dark}
-                start={dateStart}
-                end={dateEnd}
-                onChange={({ start, end }) => {
-                  setDateStart(start);
-                  setDateEnd(end);
-                }}
-              />
-            </Box>
-            <Box sx={{ flex: "1 1 280px", minWidth: 260 }}>
-              <TimeRangeFilter
-                dark={dark}
-                start={timeStart}
-                end={timeEnd}
-                onChange={({ start, end }) => {
-                  setTimeStart(start);
-                  setTimeEnd(end);
-                }}
-              />
-            </Box>
-          </Box>
-        </Grid>
-
         {filters.map((_, index) => (
           <Grid
             key={index}
@@ -150,14 +100,7 @@ export default function FilterBar({
                     label="Filtro"
                     fullWidth
                     color="primary"
-                    sx={{
-                      backgroundColor: dark ? '#0b1d36' : 'background.default',
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": { borderColor: dark ? '#375a8f' : 'divider' },
-                        "&:hover fieldset": { borderColor: dark ? '#0d4f8b' : 'primary.main' },
-                        "&.Mui-focused fieldset": { borderColor: dark ? '#0d4f8b' : 'primary.main' },
-                      },
-                    }}
+                    sx={fieldSx(dark)}
                     InputProps={{ sx: { color: dark ? '#e9eef5' : 'text.primary' } }}
                     InputLabelProps={{ sx: { color: dark ? '#e9eef5' : 'text.primary' } }}
                     SelectProps={{
@@ -200,27 +143,47 @@ export default function FilterBar({
             </Grid>
 
             <Grid item xs={12} sx={{ flexGrow: 1, width: '100%' }}>
-              <Controller
-                name={`filters.${index}.value`}
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label={recordingFilterLabel(filters[index].field) || "Valor"}
-                    fullWidth
-                    sx={{
-                      backgroundColor: dark ? '#0b1d36' : 'background.default',
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": { borderColor: dark ? '#375a8f' : 'divider' },
-                        "&:hover fieldset": { borderColor: dark ? '#0d4f8b' : 'primary.main' },
-                        "&.Mui-focused fieldset": { borderColor: dark ? '#0d4f8b' : 'primary.main' },
-                      },
-                    }}
-                    InputProps={{ sx: { color: dark ? '#e9eef5' : 'text.primary' } }}
-                    InputLabelProps={{ sx: { color: dark ? '#e9eef5' : 'text.primary' } }}
-                  />
-                )}
-              />
+              {isRecordingDateRangeFilter(filters[index].field) ? (
+                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "flex-start" }}>
+                  <Box sx={{ flex: "1 1 280px", minWidth: 240 }}>
+                    <DateRangeFilter
+                      dark={dark}
+                      start={filters[index].start || ""}
+                      end={filters[index].end || ""}
+                      onChange={({ start, end }) => {
+                        setValue(`filters.${index}.start`, start);
+                        setValue(`filters.${index}.end`, end);
+                      }}
+                    />
+                  </Box>
+                  <Box sx={{ flex: "1 1 260px", minWidth: 240 }}>
+                    <TimeRangeFilter
+                      dark={dark}
+                      start={filters[index].hourStart || ""}
+                      end={filters[index].hourEnd || ""}
+                      onChange={({ start, end }) => {
+                        setValue(`filters.${index}.hourStart`, start);
+                        setValue(`filters.${index}.hourEnd`, end);
+                      }}
+                    />
+                  </Box>
+                </Box>
+              ) : (
+                <Controller
+                  name={`filters.${index}.value`}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label={recordingFilterLabel(filters[index].field) || "Valor"}
+                      fullWidth
+                      sx={fieldSx(dark)}
+                      InputProps={{ sx: { color: dark ? '#e9eef5' : 'text.primary' } }}
+                      InputLabelProps={{ sx: { color: dark ? '#e9eef5' : 'text.primary' } }}
+                    />
+                  )}
+                />
+              )}
             </Grid>
 
             {filters.length > 1 && (

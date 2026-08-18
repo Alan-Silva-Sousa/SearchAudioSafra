@@ -66,16 +66,12 @@ function appendFilter(params: URLSearchParams, filterType: string, filterValue: 
 }
 
 function resolveFilter(filter: FilterItem): { filterType: string; filterField: string; filterValue: string }[] {
-  if (filter.field === 'RecordStart') {
+  if (filter.field === 'recordStart') {
     const items = [];
     if (filter.start) items.push({ filterType: 'RecordStartStart', filterField: '', filterValue: filter.start });
     if (filter.end) items.push({ filterType: 'RecordStartEnd', filterField: '', filterValue: filter.end });
-    return items;
-  }
-  if (filter.field === 'RecordStartHour') {
-    const items = [];
-    if (filter.start) items.push({ filterType: 'RecordStartHourStart', filterField: '', filterValue: filter.start });
-    if (filter.end) items.push({ filterType: 'RecordStartHourEnd', filterField: '', filterValue: filter.end });
+    if (filter.hourStart) items.push({ filterType: 'RecordStartHourStart', filterField: '', filterValue: filter.hourStart });
+    if (filter.hourEnd) items.push({ filterType: 'RecordStartHourEnd', filterField: '', filterValue: filter.hourEnd });
     return items;
   }
 

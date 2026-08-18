@@ -1,16 +1,12 @@
 import { forwardRef, useEffect, useMemo, useState } from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import {
-  addDays,
-  differenceInCalendarDays,
   format,
   isAfter,
   isValid,
-  min as minDateFn,
-  subDays,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { IconButton, InputAdornment, TextField, Typography } from "@mui/material";
+import { IconButton, InputAdornment, TextField } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -18,29 +14,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./DateRangeFilter.css";
 
 registerLocale("pt-BR", ptBR);
-
-export const MAX_DATE_RANGE_DAYS = 15;
-const MIN_YEAR = 2000;
-
-export function defaultDateRange(): { start: string; end: string } {
-  const end = new Date();
-  const start = subDays(end, MAX_DATE_RANGE_DAYS);
-  return {
-    start: format(start, "yyyy-MM-dd"),
-    end: format(end, "yyyy-MM-dd"),
-  };
-}
-
-export function dateRangeEndingOn(endIso: string, minIso?: string | null): { start: string; end: string } {
-  const end = parseIsoDate(endIso) ?? startOfDay(new Date());
-  let start = subDays(end, MAX_DATE_RANGE_DAYS);
-  const min = parseIsoDate(minIso);
-  if (min && start < min) start = min;
-  return {
-    start: format(start, "yyyy-MM-dd"),
-    end: format(end, "yyyy-MM-dd"),
-  };
-}
 
 function startOfDay(value: Date) {
   const d = new Date(value);
@@ -102,13 +75,6 @@ function clampRange(start: Date, end: Date, today: Date): { start: Date; end: Da
   }
   if (isAfter(nextStart, today)) nextStart = today;
   if (isAfter(nextEnd, today)) nextEnd = today;
-  if (differenceInCalendarDays(nextEnd, nextStart) > MAX_DATE_RANGE_DAYS) {
-    nextEnd = addDays(nextStart, MAX_DATE_RANGE_DAYS);
-    if (isAfter(nextEnd, today)) {
-      nextEnd = today;
-      nextStart = subDays(today, MAX_DATE_RANGE_DAYS);
-    }
-  }
   return { start: nextStart, end: nextEnd };
 }
 
@@ -224,17 +190,11 @@ export default function DateRangeFilter({
   const maxYear = today.getFullYear();
 
   const selectingEnd = Boolean(startDate && !endDate);
-  const pickerMaxDate = selectingEnd && startDate
-    ? minDateFn([addDays(startDate, MAX_DATE_RANGE_DAYS), today])
-    : today;
+  const pickerMaxDate = today;
   const pickerMinDate = selectingEnd ? startDate ?? undefined : undefined;
 
   const committedStart = parseIsoDate(start);
   const committedEnd = parseIsoDate(end);
-  const filteredDays =
-    committedStart && committedEnd
-      ? Math.max(1, differenceInCalendarDays(committedEnd, committedStart))
-      : 0;
 
   const commitRange = (nextStart: Date, nextEnd: Date) => {
     const clamped = clampRange(nextStart, nextEnd, today);
@@ -247,10 +207,7 @@ export default function DateRangeFilter({
   };
 
   const handleCalendarChange = (update: [Date | null, Date | null]) => {
-    let [nextStart, nextEnd] = update;
-    if (nextStart && nextEnd && differenceInCalendarDays(nextEnd, nextStart) > MAX_DATE_RANGE_DAYS) {
-      nextEnd = addDays(nextStart, MAX_DATE_RANGE_DAYS);
-    }
+    const [nextStart, nextEnd] = update;
     setDraft([nextStart, nextEnd]);
     if (nextStart && nextEnd) {
       commitRange(nextStart, nextEnd);
@@ -262,6 +219,12 @@ export default function DateRangeFilter({
 
   const handleCommitText = () => {
     const digits = inputText.replace(/\D/g, "");
+    if (!digits) {
+      setDraft([null, null]);
+      setInputText("");
+      onChange({ start: "", end: "" });
+      return;
+    }
     if (digits.length < 16) {
       setInputText(formatRangeText(committedStart, committedEnd));
       return;
@@ -415,10 +378,6 @@ export default function DateRangeFilter({
           );
         }}
       />
-      <Typography variant="caption" sx={{ color: dark ? "#9bb0c9" : "text.secondary", mt: 0.5, display: "block" }}>
-        Máximo de {MAX_DATE_RANGE_DAYS} dias · {filteredDays}{" "}
-        {filteredDays === 1 ? "dia filtrado" : "dias filtrados"}
-      </Typography>
-    </div>
+</div>
   );
 }
