@@ -34,11 +34,13 @@ function TimeSelect({
   value,
   onChange,
   dark = false,
+  disabled = false,
 }: {
   label: string;
   value: string;
   onChange: (next: string) => void;
   dark?: boolean;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState(value || "");
@@ -71,8 +73,11 @@ function TimeSelect({
     <Autocomplete
       freeSolo
       fullWidth
-      open={open}
-      onOpen={() => setOpen(true)}
+      disabled={disabled}
+      open={open && !disabled}
+      onOpen={() => {
+        if (!disabled) setOpen(true);
+      }}
       onClose={() => setOpen(false)}
       options={TIME_OPTIONS}
       value={value || null}
@@ -129,6 +134,7 @@ function TimeSelect({
           label={label}
           placeholder="HH:mm"
           onBlur={() => commit(text)}
+          disabled={disabled}
           sx={{
             backgroundColor: dark ? "#0b1d36" : "background.default",
             "& .MuiOutlinedInput-root": {
@@ -148,8 +154,12 @@ function TimeSelect({
                   <IconButton
                     type="button"
                     aria-label={`Abrir horários ${label}`}
+                    disabled={disabled}
                     onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => setOpen((current) => !current)}
+                    onClick={() => {
+                      if (disabled) return;
+                      setOpen((current) => !current);
+                    }}
                     edge="end"
                     size="small"
                   >
@@ -170,16 +180,18 @@ export default function TimeRangeFilter({
   end,
   onChange,
   dark = false,
+  disabled = false,
 }: {
   start: string;
   end: string;
   onChange: (next: { start: string; end: string }) => void;
   dark?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Box sx={{ display: "flex", gap: 2, width: "100%", minWidth: 280, flexWrap: { xs: "wrap", sm: "nowrap" } }}>
-      <TimeSelect label="De" value={start} onChange={(next) => onChange({ start: next, end })} dark={dark} />
-      <TimeSelect label="Para" value={end} onChange={(next) => onChange({ start, end: next })} dark={dark} />
+      <TimeSelect label="De" value={start} onChange={(next) => onChange({ start: next, end })} dark={dark} disabled={disabled} />
+      <TimeSelect label="Para" value={end} onChange={(next) => onChange({ start, end: next })} dark={dark} disabled={disabled} />
     </Box>
   );
 }

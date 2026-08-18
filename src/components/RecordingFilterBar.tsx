@@ -1,4 +1,4 @@
-import { Box, Grid, TextField, MenuItem, Button, IconButton, Stack } from "@mui/material";
+import { Box, Grid, TextField, MenuItem, Button, IconButton, Stack, Typography } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import ClearIcon from "@mui/icons-material/Clear";
 import AddIcon from "@mui/icons-material/Add";
@@ -146,6 +146,9 @@ export default function FilterBar({
               {isRecordingDateRangeFilter(filters[index].field) ? (
                 <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "flex-start" }}>
                   <Box sx={{ flex: "1 1 280px", minWidth: 240 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 0.75, fontWeight: 700, color: dark ? "#e9eef5" : "text.primary" }}>
+                      Data
+                    </Typography>
                     <DateRangeFilter
                       dark={dark}
                       start={filters[index].start || ""}
@@ -153,12 +156,20 @@ export default function FilterBar({
                       onChange={({ start, end }) => {
                         setValue(`filters.${index}.start`, start);
                         setValue(`filters.${index}.end`, end);
+                        if (!start && !end) {
+                          setValue(`filters.${index}.hourStart`, "");
+                          setValue(`filters.${index}.hourEnd`, "");
+                        }
                       }}
                     />
                   </Box>
                   <Box sx={{ flex: "1 1 260px", minWidth: 240 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 0.75, fontWeight: 700, color: dark ? "#e9eef5" : "text.primary" }}>
+                      Hora
+                    </Typography>
                     <TimeRangeFilter
                       dark={dark}
+                      disabled={!filters[index].start && !filters[index].end}
                       start={filters[index].hourStart || ""}
                       end={filters[index].hourEnd || ""}
                       onChange={({ start, end }) => {
@@ -166,6 +177,11 @@ export default function FilterBar({
                         setValue(`filters.${index}.hourEnd`, end);
                       }}
                     />
+                    {!filters[index].start && !filters[index].end && (
+                      <Typography variant="caption" sx={{ mt: 0.5, display: "block", color: dark ? "#9bb0c9" : "text.secondary" }}>
+                        Preencha a data para filtrar por horário
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               ) : (

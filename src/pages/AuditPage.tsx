@@ -78,9 +78,6 @@ export default function AuditPage() {
             <Button variant="outlined" onClick={() => navigate('/')}>Voltar às gravações</Button>
           </Box>
         </Box>
-          <Alert severity="info" sx={{ mb: 3 }}>
-            Eventos somente leitura. Identidade, IP e resultado não são enviados pelo frontend.
-          </Alert>
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
         )}
