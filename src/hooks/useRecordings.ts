@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FilterItem } from '../components/RecordingFilterBar';
 import { authenticatedHeaders } from '../auth/accessContext';
+import { RECORDING_FILTERS } from '../filters/recordingFilters';
 
 export interface RecordingMeta {
   CallIDMaster: string
@@ -44,76 +45,45 @@ export interface UserMeta {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/audio/api';
 
 const FILTER_FIELD_TO_TYPE: Record<string, string> = {
-  date: 'RecordStart',
   telefoneCliente: 'CustomerPhone',
   telefoneDestino: 'DestinationPhone',
-  documento: 'Document',
+  recordStartStart: 'RecordStartStart',
+  recordStartEnd: 'RecordStartEnd',
   filaSkill: 'QueueSkill',
-  ambiente: 'Environment',
-  duracao: 'Duration',
-  format: 'Format',
-  tamanho: 'FileSize',
 };
 
-function normalizeDuration(value: string): string {
-  const parts = value.trim().split(':').map(Number);
-  if (parts.some(Number.isNaN)) return value.trim();
-  if (parts.length === 2) return String(parts[0] * 60 + parts[1]);
-  if (parts.length === 3) return String(parts[0] * 3600 + parts[1] * 60 + parts[2]);
-  return value.trim();
-}
+const participantFilterKeys = Object.fromEntries(
+  RECORDING_FILTERS.filter((item) => item.participantKey).map((item) => [item.field, item.participantKey!]),
+);
 
-function normalizeFileSize(value: string): string {
-  const match = value.trim().replace(',', '.').match(/^([0-9]+(?:\.[0-9]+)?)\s*(B|KB|MB|GB)?$/i);
-  if (!match) return value.trim();
-  const units: Record<string, number> = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3 };
-  return String(Math.round(Number(match[1]) * units[(match[2] || 'B').toUpperCase()]));
+function resolveFilter(filter: FilterItem): { filterType: string; filterField: string; filterValue: string } | null {
+  const value = filter.value?.trim();
+  if (!filter.field || !value) return null;
+
+  const participantKey = participantFilterKeys[filter.field];
+  if (participantKey) {
+    return { filterType: 'ParticipantData', filterField: participantKey, filterValue: value };
+  }
+
+  const filterType = FILTER_FIELD_TO_TYPE[filter.field];
+  if (!filterType) return null;
+  return { filterType, filterField: '', filterValue: value };
 }
 
 export default function useRecordings() {
   const [data, setData] = useState<RecordingMeta[]>([])
   const [dataUsers, setDataUsers] = useState<UserMeta[]>([])
   const [loading, setLoading] = useState(false)
-  const [filterFields, setFilterFields] = useState<string[]>([])
-
-  async function fetchFilterFields() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/audio/filter-fields`, {
-        headers: authenticatedHeaders(),
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error(String(response.status));
-      setFilterFields(await response.json());
-    } catch {
-      setFilterFields([]);
-    }
-  }
 
   function buildQueryParams(filters: FilterItem[]): URLSearchParams {
     const params = new URLSearchParams();
 
-    filters.forEach(filter => {
-      if (!filter.field) return;
-
-      const participantField = filter.field.startsWith('participant:')
-        ? filter.field.slice('participant:'.length)
-        : '';
-      const filterType = participantField ? 'ParticipantData' : FILTER_FIELD_TO_TYPE[filter.field];
-      if (!filterType) return;
-
-      const value = filter.field === 'date' ? filter.start : filter.value;
-      if (!value) return;
-
-      params.append('filterType', filterType);
-      params.append('filterField', participantField);
-      params.append(
-        'filterValue',
-        filter.field === 'duracao'
-          ? normalizeDuration(value)
-          : filter.field === 'tamanho'
-            ? normalizeFileSize(value)
-            : value,
-      );
+    filters.forEach((filter) => {
+      const resolved = resolveFilter(filter);
+      if (!resolved) return;
+      params.append('filterType', resolved.filterType);
+      params.append('filterField', resolved.filterField);
+      params.append('filterValue', resolved.filterValue);
     });
 
     return params;
@@ -145,5 +115,5 @@ export default function useRecordings() {
     }
   }
 
-  return { dataUsers, data, fetchRecordings, fetchFilterFields, filterFields, loading }
+  return { dataUsers, data, fetchRecordings, loading }
 }

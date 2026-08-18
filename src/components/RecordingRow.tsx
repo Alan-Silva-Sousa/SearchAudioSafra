@@ -64,7 +64,14 @@ function AuthorizedAudio({ recording }: { recording: RecordingMeta }) {
     };
   }, [recording.CallIDMaster]);
 
-  return <audio controls src={source} style={{ borderRadius: 8, maxWidth: '100%', width: '100%' }} />;
+  return (
+    <audio
+      controls
+      controlsList="nodownload"
+      src={source}
+      style={{ borderRadius: 8, maxWidth: '100%', width: '100%' }}
+    />
+  );
 }
 
 export default function RecordingRow({ recording, checked, onCheck }: Props) {

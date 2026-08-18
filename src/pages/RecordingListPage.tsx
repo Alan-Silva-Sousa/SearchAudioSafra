@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Box, Container, Typography, CircularProgress, Paper, Stack, Button } from '@mui/material'
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { LocalizationProvider } from '@mui/x-date-pickers'
@@ -12,10 +12,9 @@ import { PERMISSIONS, usePermissions } from '../hooks/usePermissions'
 
 export default function RecordingListPage() {
   const { can, canAccessVideo } = usePermissions()
-  const { data: recordings, fetchRecordings, fetchFilterFields, filterFields, loading } = useRecordings()
+  const { data: recordings, fetchRecordings, loading } = useRecordings()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [email, setEmail] = useState('')
-  const [showDateRangeAlert, setShowDateRangeAlert] = useState(false)
 
   const navigate = useNavigate();
   const allowedUsers = ["admin@admin.com"];
@@ -73,18 +72,6 @@ export default function RecordingListPage() {
     if (email) {
       setEmail(email)
     }
-    void fetchFilterFields()
-  }, [])
-
-  const handleFilterChange = useCallback((filters: FilterItem[]) => {
-    const hasDateWithOnlyStart = filters.some(
-      filter => {
-        const result = filter.field === 'date' && (!filter.end || filter.end == undefined);
-        return result;
-      }
-    );
-
-    setShowDateRangeAlert(hasDateWithOnlyStart);
   }, [])
 
   const handleFilterSubmit = (filters: FilterItem[]) => {
@@ -213,7 +200,7 @@ export default function RecordingListPage() {
         ) : (
         <Box  margin="0 0 0 0" sx={{ mb: 4 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <FilterBar participantFields={filterFields} onSubmit={handleFilterSubmit} onFilterChange={handleFilterChange} />
+            <FilterBar onSubmit={handleFilterSubmit} />
           </LocalizationProvider>
         </Box>
         )}

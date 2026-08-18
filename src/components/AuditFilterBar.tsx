@@ -2,9 +2,9 @@ import { Box, Button, Grid, MenuItem, Stack, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
-import { parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AUDIT_ACTIONS, type AuditEventsQuery } from '../audit/contract';
+import { BR_DATE_FORMAT, parseStoredDate, toApiDate } from '../utils/dateInput';
 
 export type AuditFilters = {
   start: string;
@@ -31,7 +31,7 @@ const emptyFilters: AuditFilters = {
 };
 
 function parseDate(value?: string) {
-  return value ? parse(value, 'yyyy-MM-dd', new Date()) : null;
+  return parseStoredDate(value);
 }
 
 export default function AuditFilterBar({
@@ -66,9 +66,9 @@ export default function AuditFilterBar({
               render={({ field }) => (
                 <DesktopDatePicker
                   label="Data inicial"
-                  format="yyyy-MM-dd"
+                  format={BR_DATE_FORMAT}
                   value={parseDate(field.value)}
-                  onChange={(value) => field.onChange(value ? value.toISOString().slice(0, 10) : '')}
+                  onChange={(value) => field.onChange(toApiDate(value))}
                   slotProps={{ textField: { fullWidth: true } }}
                 />
               )}
@@ -81,9 +81,9 @@ export default function AuditFilterBar({
               render={({ field }) => (
                 <DesktopDatePicker
                   label="Data final"
-                  format="yyyy-MM-dd"
+                  format={BR_DATE_FORMAT}
                   value={parseDate(field.value)}
-                  onChange={(value) => field.onChange(value ? value.toISOString().slice(0, 10) : '')}
+                  onChange={(value) => field.onChange(toApiDate(value))}
                   slotProps={{ textField: { fullWidth: true } }}
                 />
               )}
