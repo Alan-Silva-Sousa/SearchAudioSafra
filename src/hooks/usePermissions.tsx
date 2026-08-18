@@ -44,7 +44,10 @@ export function PermissionsProvider({
 }) {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [accessGroups, setAccessGroups] = useState<AccessGroup[]>(session.accessGroups || []);
+  const [videoAccessGroups, setVideoAccessGroups] = useState<AccessGroup[]>([]);
   const [loaded, setLoaded] = useState(false);
+
+  const VIDEO_API_BASE_URL = import.meta.env.VITE_VIDEO_API_BASE_URL || '/video/api';
 
   useEffect(() => {
     const controller = new AbortController();
@@ -58,6 +61,21 @@ export function PermissionsProvider({
         syncGroupInUrl(slug);
       }
     }
+
+    const token = localStorage.getItem('token');
+    fetch(`${VIDEO_API_BASE_URL}/auth/session`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      credentials: 'include',
+      signal: controller.signal,
+    })
+      .then(async (response) => (response.ok ? response.json() as Promise<SessionResponse> : null))
+      .then((data) => {
+        if (controller.signal.aborted) return;
+        setVideoAccessGroups((data?.accessGroups || []).filter(isVideoAccessGroup));
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setVideoAccessGroups([]);
+      });
 
     const explicit = session.permissions?.canReadAudit;
     const resolve = async () => {
@@ -73,12 +91,11 @@ export function PermissionsProvider({
   const value = useMemo<PermissionsState>(
     () => {
       const currentSlug = getAccessContext();
-      const videoGroups = (session.accessGroups || []).filter(isVideoAccessGroup);
       return {
       permissions,
       accessGroups,
       canAccessAudio: (session.accessGroups || []).some(isAudioAccessGroup),
-      canAccessVideo: hasPairedMediaAccess(currentSlug, videoGroups, 'video'),
+      canAccessVideo: hasPairedMediaAccess(currentSlug, videoAccessGroups, 'video'),
       downloadJustificationRequired: false,
       loaded,
       can: (permission) => permissions.includes(permission),
@@ -89,7 +106,7 @@ export function PermissionsProvider({
       },
     };
     },
-    [permissions, accessGroups, loaded, session],
+    [permissions, accessGroups, videoAccessGroups, loaded, session],
   );
 
   return <PermissionsContext.Provider value={value}>{children}</PermissionsContext.Provider>;
